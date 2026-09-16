@@ -13,13 +13,18 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main.js",
     "lint": "oxlint --type-aware src/ test/",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "prisma:generate": "prisma generate --config prisma7.config.ts",
+    "prisma:validate": "prisma validate --config prisma7.config.ts",
+    "prisma:migrate": "prisma migrate deploy --config prisma7.config.ts",
+    "prebuild": "npm run prisma:generate",
+    "test:examenes": "npm run build && node --test --test-isolation=none test/examenes-laboratorio.integration.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
