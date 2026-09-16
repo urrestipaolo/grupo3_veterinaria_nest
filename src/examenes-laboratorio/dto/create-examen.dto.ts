@@ -1,36 +1,42 @@
 import {
   IsEnum,
   IsInt,
-  IsOptional,
+  IsISO8601,
   IsString,
   Max,
-  MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
-import { TipoExamen } from '../../../generated/prisma/enums.js';
-
+import { EstadoExamen, TipoExamen } from '../../../generated/prisma/enums.js';
 export class CreateExamenDto {
   @IsInt()
   @Min(1)
   @Max(2147483647)
   atencionId: number;
-
   @IsEnum(TipoExamen)
   tipoExamen: TipoExamen;
-
   @IsInt()
   @Min(1)
   @Max(2147483647)
   solicitadoPorId: number;
-
-  // Conserva el nombre definido en el esquema compartido del grupo.
   @IsInt()
   @Min(1)
   @Max(2147483647)
   LaboratoristaId: number;
-
-  @IsOptional()
+  @ValidateIf(
+    (_object, value: unknown) => value !== undefined && value !== null,
+  )
   @IsString()
-  @MaxLength(5000)
-  observaciones?: string;
+  resultados?: string | null;
+  @ValidateIf(
+    (_object, value: unknown) => value !== undefined && value !== null,
+  )
+  @IsString()
+  observaciones?: string | null;
+  @ValidateIf((_object, value: unknown) => value !== undefined)
+  @IsEnum(EstadoExamen)
+  estado?: EstadoExamen;
+  @ValidateIf((_object, value: unknown) => value !== undefined)
+  @IsISO8601({ strict: true })
+  fechaResultado?: string;
 }

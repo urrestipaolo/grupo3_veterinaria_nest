@@ -104,161 +104,82 @@ after(async () => {
   }
 });
 
-void test('crea pendiente sin fecha ni resultados y no expone contraseñas', async () => {
+void test('CRUD usa los valores predeterminados del esquema original', async () => {
   const { body: examen } = await create();
   assert.equal(examen.estado, 'PENDIENTE');
-  assert.equal(examen.fechaResultado, null);
-  assert.equal(examen.resultados, null);
-  assert.equal(examen.solicitadoPor.id, veterinario.id);
-  assert.equal('password' in examen.solicitadoPor, false);
-  assert.equal('password' in examen.laboratorista, false);
-  const stored = await db.examenLaboratorio.findUnique({
-    where: { id: examen.id },
-  });
-  assert.equal(stored.fechaResultado, null);
-});
-
-void test('consulta por ID y filtra por atención, estado y laboratorista con paginación', async () => {
-  const { body: examen } = await create();
-  await request(app.getHttpServer()).get(`${base}/${examen.id}`).expect(200);
-  const { body: lista } = await request(app.getHttpServer())
-    .get(base)
-    .query({
-      atencionId: atencion.id,
-      LaboratoristaId: laboratorista.id,
-      estado: 'PENDIENTE',
-      limit: 1,
-    })
+  assert.ok(Number.isFinite(Date.parse(examen.fechaResultado)));
+  await request(app.getHttpServer()).get(base).expect(200);
+  await request(app.getHttpServer())
+    .get(base + '/' + examen.id)
     .expect(200);
-  assert.equal(lista.length, 1);
-  assert.equal(lista[0].id, examen.id);
+  await request(app.getHttpServer())
+    .patch(base + '/' + examen.id)
+    .send({ resultados: 'Resultado', estado: 'COMPLETADO' })
+    .expect(200);
+  await request(app.getHttpServer())
+    .delete(base + '/' + examen.id)
+    .expect(200);
+  await request(app.getHttpServer())
+    .get(base + '/' + examen.id)
+    .expect(404);
 });
-
-void test('rechaza campos inesperados, IDs inválidos, tipos y consultas incorrectos', async () => {
+void test('no impone roles ni estados de atención que el esquema no exige', async () => {
+  const { body: examen } = await request(app.getHttpServer())
+    .post(base)
+    .send({
+      ...body(),
+      atencionId: alta.id,
+      solicitadoPorId: recepcionista.id,
+      LaboratoristaId: veterinario.id,
+      estado: 'COMPLETADO',
+    })
+    .expect(201);
+  await request(app.getHttpServer())
+    .patch(base + '/' + examen.id)
+    .send({ estado: 'CANCELADO', resultados: null })
+    .expect(200);
+});
+void test('valida tipos, campos y referencias del esquema', async () => {
   for (const data of [
-    { ...body(), estado: 'COMPLETADO' },
-    { ...body(), atencionId: -1 },
     { ...body(), tipoExamen: 'OTRO' },
-    { ...body(), LaboratoristaId: null },
+    { ...body(), atencionId: null },
+    { ...body(), extra: true },
   ]) {
     await request(app.getHttpServer()).post(base).send(data).expect(400);
   }
-  for (const path of [
-    '/abc',
-    '/0',
-    '?limit=101',
-    '?estado=OTRO',
-    '?page=0',
-    '?atencionId=abc',
-  ]) {
-    await request(app.getHttpServer())
-      .get(base + path)
-      .expect(400);
-  }
-});
-
-void test('rechaza referencias inexistentes, roles incorrectos y atenciones dadas de alta', async () => {
   await request(app.getHttpServer())
     .post(base)
     .send({ ...body(), atencionId: 2147483647 })
-    .expect(404);
-  await request(app.getHttpServer())
-    .post(base)
-    .send({ ...body(), solicitadoPorId: 2147483647 })
-    .expect(404);
-  await request(app.getHttpServer())
-    .post(base)
-    .send({ ...body(), solicitadoPorId: recepcionista.id })
-    .expect(400);
-  await request(app.getHttpServer())
-    .post(base)
-    .send({ ...body(), LaboratoristaId: veterinario.id })
-    .expect(400);
-  await request(app.getHttpServer())
-    .post(base)
-    .send({ ...body(), atencionId: alta.id })
     .expect(409);
+  await request(app.getHttpServer())
+    .get(base + '/abc')
+    .expect(400);
+  await request(app.getHttpServer())
+    .patch(base + '/2147483647')
+    .send({ observaciones: 'Prueba' })
+    .expect(404);
+  await request(app.getHttpServer())
+    .delete(base + '/2147483647')
+    .expect(404);
 });
-
-void test('edita pendientes y rechaza cambios vacíos, nulos o fuera del contrato', async () => {
-  const { body: examen } = await create();
+void test('mantiene la fecha indicada y permite editar todos los campos del modelo', async () => {
+  const fechaResultado = '2026-09-16T12:00:00.000Z';
+  const { body: examen } = await request(app.getHttpServer())
+    .post(base)
+    .send({ ...body(), fechaResultado })
+    .expect(201);
+  assert.equal(examen.fechaResultado, fechaResultado);
   const { body: actualizado } = await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}`)
-    .send({ tipoExamen: 'RAYOS_X', observaciones: 'Ayuno indicado' })
+    .patch(base + '/' + examen.id)
+    .send({
+      atencionId: alta.id,
+      solicitadoPorId: recepcionista.id,
+      observaciones: null,
+    })
     .expect(200);
-  assert.equal(actualizado.tipoExamen, 'RAYOS_X');
-  for (const data of [
-    {},
-    { tipoExamen: null },
-    { LaboratoristaId: null },
-    { estado: 'COMPLETADO' },
-    { atencionId: alta.id },
-    { LaboratoristaId: veterinario.id },
-  ]) {
-    await request(app.getHttpServer())
-      .patch(`${base}/${examen.id}`)
-      .send(data)
-      .expect(400);
-  }
-});
-
-void test('registra resultados y fecha de forma atómica; bloquea cambios posteriores', async () => {
-  const { body: examen } = await create();
+  assert.equal(actualizado.atencionId, alta.id);
   await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/resultados`)
-    .send({ resultados: '  ' })
+    .patch(base + '/' + examen.id)
+    .send({ fechaResultado: null })
     .expect(400);
-  const { body: completo } = await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/resultados`)
-    .send({ resultados: '  Dentro del rango  ' })
-    .expect(200);
-  assert.equal(completo.estado, 'COMPLETADO');
-  assert.equal(completo.resultados, 'Dentro del rango');
-  assert.ok(Number.isFinite(Date.parse(completo.fechaResultado)));
-  await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}`)
-    .send({ observaciones: 'Cambio' })
-    .expect(409);
-  await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/cancelar`)
-    .expect(409);
-  await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/resultados`)
-    .send({ resultados: 'Otro' })
-    .expect(409);
-});
-
-void test('cancela sin eliminar el registro ni inventar fecha de resultado', async () => {
-  const { body: examen } = await create();
-  const { body: cancelado } = await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/cancelar`)
-    .expect(200);
-  assert.equal(cancelado.estado, 'CANCELADO');
-  assert.equal(cancelado.fechaResultado, null);
-  await request(app.getHttpServer()).get(`${base}/${examen.id}`).expect(200);
-  await request(app.getHttpServer())
-    .patch(`${base}/${examen.id}/resultados`)
-    .send({ resultados: 'Otro' })
-    .expect(409);
-});
-
-void test('devuelve 404 al consultar o modificar un examen inexistente', async () => {
-  await request(app.getHttpServer()).get(`${base}/2147483647`).expect(404);
-  await request(app.getHttpServer())
-    .patch(`${base}/2147483647/cancelar`)
-    .expect(404);
-});
-
-void test('dos cambios simultáneos no pueden completar y cancelar el mismo examen', async () => {
-  const { body: examen } = await create();
-  const responses = await Promise.all([
-    request(app.getHttpServer())
-      .patch(`${base}/${examen.id}/resultados`)
-      .send({ resultados: 'Resultado final' }),
-    request(app.getHttpServer()).patch(`${base}/${examen.id}/cancelar`),
-  ]);
-  assert.deepEqual(
-    responses.map((response) => response.status).sort((a, b) => a - b),
-    [200, 409],
-  );
 });

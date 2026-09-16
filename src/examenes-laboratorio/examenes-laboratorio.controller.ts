@@ -1,19 +1,17 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { CreateExamenDto } from './dto/create-examen.dto.js';
 import { UpdateExamenDto } from './dto/update-examen.dto.js';
-import { ListExamenesDto } from './dto/list-examenes.dto.js';
-import { RegistrarResultadosDto } from './dto/registrar-resultados.dto.js';
 import { ExamenesLaboratorioService } from './examenes-laboratorio.service.js';
 
 @Controller('examenes-laboratorio')
@@ -33,8 +31,8 @@ export class ExamenesLaboratorioController {
   }
 
   @Get()
-  findAll(@Query() query: ListExamenesDto) {
-    return this.service.findAll(query);
+  findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')
@@ -47,16 +45,8 @@ export class ExamenesLaboratorioController {
     return this.service.update(id, dto);
   }
 
-  @Patch(':id/resultados')
-  registrarResultados(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: RegistrarResultadosDto,
-  ) {
-    return this.service.registrarResultados(id, dto);
-  }
-
-  @Patch(':id/cancelar')
-  cancelar(@Param('id', ParseIntPipe) id: number) {
-    return this.service.cancelar(id);
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.service.remove(id);
   }
 }

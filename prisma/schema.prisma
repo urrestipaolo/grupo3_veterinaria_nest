@@ -117,7 +117,7 @@ model ExamenLaboratorio {
   resultados      String?
   observaciones   String?
   estado          EstadoExamen   @default(PENDIENTE)
-  fechaResultado  DateTime?      @map("fecha_Resultado")
+  fechaResultado  DateTime       @default(now()) @map("fecha_Resultado")
 
   @@map("examenes_laboratorio")
 }
