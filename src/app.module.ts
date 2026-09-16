@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { PrismaModule } from './prisma/prisma.module.js';
+import { UsuariosModule } from './usuarios/usuarios.module.js';
 import { AtencionMedicaModule } from './atencion-medica/atencion-medica.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
@@ -15,6 +17,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'veterinaria-nest',
     }),
+    PrismaModule,
+    UsuariosModule,
     AtencionMedicaModule,
   ],
   controllers: [AppController],
