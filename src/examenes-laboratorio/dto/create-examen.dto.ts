@@ -7,7 +7,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { EstadoExamen, TipoExamen } from '../../../generated/prisma/enums.js';
+import { EstadoExamen, TipoExamen } from '../../generated/prisma/enums.js';
 export class CreateExamenDto {
   @IsInt()
   @Min(1)

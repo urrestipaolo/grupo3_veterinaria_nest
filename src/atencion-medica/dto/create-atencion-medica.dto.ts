@@ -10,7 +10,7 @@ import {
 
 import { Type } from 'class-transformer';
 
-import { EstadoAtencion } from '../../generated/prisma/client.js';
+import { EstadoAtencion } from '../../generated/prisma/enums.js';
 
 export class CreateAtencionMedicaDto {
   @Type(() => Number)

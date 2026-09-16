@@ -7,4 +7,4 @@ import { PrismaModule } from '../prisma/prisma.module.js';
   controllers: [AtencionesMedicasController],
   providers: [AtencionesMedicasService],
 })
-export class AtencionMedicaModule {}
+export class AtencionMedicaModule{}

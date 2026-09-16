@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { DuenosService } from './duenos.service.js';
-import { CreateDuenoDto } from './dto/create.dueno.dto.js';
-import { UpdateDuenoDto } from './dto/update.dueno.dto.js';
+import { CreateDuenoDto } from './dto/create-dueno.dto.js';
+import { UpdateDuenoDto } from './dto/update-dueno.dto.js';
 
 @Controller('duenos')
 export class DuenosController {

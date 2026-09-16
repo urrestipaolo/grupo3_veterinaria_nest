@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateDuenoDto } from './dto/create.dueno.dto.js';
-import { UpdateDuenoDto } from './dto/update.dueno.dto.js';
+import { CreateDuenoDto } from './dto/create-dueno.dto.js';
+import { UpdateDuenoDto } from './dto/update-dueno.dto.js';
 
 @Injectable()
 export class DuenosService {
