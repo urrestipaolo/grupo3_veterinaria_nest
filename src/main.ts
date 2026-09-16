@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule, ObserveInstrument } from './app.module.js';
 import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
@@ -7,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     instrument: ObserveInstrument,
   });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -14,6 +17,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();
