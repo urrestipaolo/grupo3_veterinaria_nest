@@ -19,20 +19,11 @@ export class ExamenesLaboratorioService {
       );
   }
   private async ejecutar<T>(operation: () => Promise<T>): Promise<T> {
-    try {
+
       return await operation();
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025')
-          throw new NotFoundException('Examen no encontrado');
-        if (error.code === 'P2003')
-          throw new ConflictException(
-            'La atención o uno de los usuarios referenciados no existe',
-          );
-      }
-      throw error;
     }
-  }
+
+    
   create(dto: CreateExamenDto) {
     return this.ejecutar(() =>
       this.prisma.examenLaboratorio.create({ data: dto }),

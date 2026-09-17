@@ -12,16 +12,14 @@ import { loginUsuarioDto } from './dto/login-usuario.dto.js';
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
   async register(createUsuarioDto: CreateUsuarioDto) {
-    try {
       return await this.prisma.usuario.create({ data: createUsuarioDto });
-    } catch (error) {
-      return error;
     }
-  }
+
+
   async login(loginUsuarioDto: loginUsuarioDto) {
     const { email, password } = loginUsuarioDto;
 
-    try {
+
       const user = await this.prisma.usuario.findUnique({
         where: { email },
       });
@@ -39,12 +37,7 @@ export class UsuariosService {
           rol: user.rol,
         },
       };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
     }
-  }
 
   async findAll() {
     try {
@@ -55,7 +48,6 @@ export class UsuariosService {
   }
 
   async findOne(id: number) {
-    try {
       const user = await this.prisma.usuario.findUnique({
         where: { id },
       });
@@ -63,13 +55,9 @@ export class UsuariosService {
         throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
       }
       return user;
-    } catch (error) {
-      return error;
     }
-  }
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    try {
       const user = await this.prisma.usuario.findUnique({
         where: { id },
       });
@@ -80,13 +68,9 @@ export class UsuariosService {
         where: { id },
         data: updateUsuarioDto,
       });
-    } catch (error) {
-      return error;
     }
-  }
 
   async remove(id: number) {
-    try {
       const user = await this.prisma.usuario.findUnique({
         where: { id },
       });
@@ -96,8 +80,5 @@ export class UsuariosService {
       return await this.prisma.usuario.delete({
         where: { id },
       });
-    } catch (error) {
-      return error;
     }
-  }
 }   

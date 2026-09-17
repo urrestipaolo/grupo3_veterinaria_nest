@@ -7,12 +7,8 @@ import { DuenosModule } from './duenos/duenos.module.js';
 import { ExamenesLaboratorioModule } from './examenes-laboratorio/examenes-laboratorio.module.js';
 import { AtencionMedicaModule } from './atencion-medica/atencion-medica.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
-
-import { ExamenesLaboratorioModule } from './examenes-laboratorio/examenes-laboratorio.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
-import { DuenosModule } from './duenos/duenos.module.js';
-import { UsuariosModule } from './usuarios/usuarios.module.js';
-import { AtencionMedicaModule } from './atencion-medica/atencion-medica.module.js';
+
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
