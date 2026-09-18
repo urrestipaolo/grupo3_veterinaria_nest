@@ -6,26 +6,25 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service.js';
 import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
-import { loginUsuarioDto } from './dto/login-usuario.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorators.js';
 
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
-
   @Post()
-  create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    return this.usuariosService.register(createUsuarioDto);
+  create(@Body() createUserDto: CreateUsuarioDto) {
+    return this.usuariosService.create(createUserDto);
   }
-  @Post('login')
-  login(@Body() loginUsuarioDto: loginUsuarioDto) {
-    return this.usuariosService.login(loginUsuarioDto);
-  }
-
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECEPCIONISTA')
   findAll() {
     return this.usuariosService.findAll();
   }
