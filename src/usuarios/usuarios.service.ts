@@ -1,43 +1,31 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { loginUsuarioDto } from './dto/login-usuario.dto.js';
+import * as bcrypt from 'bcryptjs';
+import { Role } from '../generated/prisma/enums.js';
 
 @Injectable()
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
-  async register(createUsuarioDto: CreateUsuarioDto) {
-      return await this.prisma.usuario.create({ data: createUsuarioDto });
-    }
-
-
-  async login(loginUsuarioDto: loginUsuarioDto) {
-    const { email, password } = loginUsuarioDto;
-
-
-      const user = await this.prisma.usuario.findUnique({
-        where: { email },
-      });
-
-      if (!user || user.password !== password) {
-        throw new UnauthorizedException('Credenciales invalidas');
-      }
-
-      return {
-        mensaje: 'Acceso correcto',
-        usuario: {
-          id: user.id,
-          nombre: user.nombre,
-          email: user.email,
-          rol: user.rol,
-        },
-      };
-    }
+  async create(createUserDto: CreateUsuarioDto) {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    return await this.prisma.usuario.create({
+      data: {
+        nombre: createUserDto.nombre,
+        email: createUserDto.email,
+        password: hashedPassword,
+        rol: createUserDto.rol ?? Role.RECEPCIONISTA,
+      },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        createdAt: true,
+      },
+    });
+  }
 
   async findAll() {
     try {
@@ -48,37 +36,57 @@ export class UsuariosService {
   }
 
   async findOne(id: number) {
-      const user = await this.prisma.usuario.findUnique({
-        where: { id },
-      });
-      if (!user) {
-        throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
-      }
-      return user;
+    const user = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        createdAt: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
     }
+    return user;
+  }
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-      const user = await this.prisma.usuario.findUnique({
-        where: { id },
-      });
-      if (!user) {
-        throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
-      }
-      return await this.prisma.usuario.update({
-        where: { id },
-        data: updateUsuarioDto,
-      });
+    const user = await this.prisma.usuario.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
     }
+    return await this.prisma.usuario.update({
+      where: { id },
+      data: updateUsuarioDto,
+    });
+  }
 
   async remove(id: number) {
-      const user = await this.prisma.usuario.findUnique({
-        where: { id },
-      });
-      if (!user) {
-        throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
-      }
-      return await this.prisma.usuario.delete({
-        where: { id },
-      });
+    const user = await this.prisma.usuario.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      throw new NotFoundException(`usuario de ID: ${id} no encontrado`);
     }
-}   
+    return await this.prisma.usuario.delete({
+      where: { id },
+    });
+  }
+  async findByEmail(email: string) {
+    return this.prisma.usuario.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        createdAt: true,
+        password: true,
+      },
+    });
+  }
+}
