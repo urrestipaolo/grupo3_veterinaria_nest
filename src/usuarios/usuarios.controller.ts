@@ -24,22 +24,28 @@ export class UsuariosController {
   }
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('RECEPCIONISTA')
+  @Roles('RECEPCIONISTA', 'VETERINARIO')
   findAll() {
     return this.usuariosService.findAll();
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECEPCIONISTA', 'VETERINARIO')
   findOne(@Param('id') id: string) {
     return this.usuariosService.findOne(+id);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECEPCIONISTA', 'VETERINARIO')
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(+id, updateUsuarioDto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECEPCIONISTA', 'VETERINARIO')
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
