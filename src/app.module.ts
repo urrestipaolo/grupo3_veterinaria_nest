@@ -9,12 +9,23 @@ import { AtencionMedicaModule } from './atencion-medica/atencion-medica.module.j
 import { UsuariosModule } from './usuarios/usuarios.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
-
+import { ConfigModule } from '@nestjs/config';
+import { envValidationSchema } from './config/env.validations.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        libraryOptions: {
+          abortEarly: false,
+          allowUnknow: true,
+        },
+      },
+    }),
     ExamenesLaboratorioModule,
 
     ObserveModule.forRoot({
@@ -27,7 +38,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ExamenesLaboratorioModule,
     AtencionMedicaModule,
     UsuariosModule,
-    AuthModule
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
