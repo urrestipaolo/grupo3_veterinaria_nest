@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule, ObserveInstrument } from './app.module.js';
@@ -18,6 +18,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  const configService = app.get(ConfigService);
+  await app.listen(configService.getOrThrow<number>('PORT'));
 }
 await bootstrap();
