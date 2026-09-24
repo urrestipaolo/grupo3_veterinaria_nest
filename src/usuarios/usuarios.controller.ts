@@ -19,6 +19,8 @@ import { Roles } from '../auth/decorators/roles.decorators.js';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECEPCIONISTA', 'VETERINARIO')
   create(@Body() createUserDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUserDto);
   }
