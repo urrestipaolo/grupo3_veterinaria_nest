@@ -1,12 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
 import { CreateUsuarioDto } from '../usuarios/dto/create-usuario.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+
+
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UsuariosService) {}
+  constructor(
+    private readonly userService: UsuariosService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async register(CreateUserDto: CreateUsuarioDto) {
     return this.userService.create(CreateUserDto);
@@ -21,10 +27,14 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException('Credenciales Invalidas');
     }
-    const token = jwt.sign(
+       const token = jwt.sign(
       { id: user.id, email: user.email, role: user.rol, name: user.nombre },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '8h' },
+      this.configService.get<string>('JWT_SECRET') as string,
+      {
+        expiresIn: this.configService.get<string>(
+          'JWT_EXPIRES_IN',
+        ) as SignOptions['expiresIn'],
+      },
     );
     return { token };
   }
